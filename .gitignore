@@ -1,4 +1,5 @@
 data
+previous
 .ipynb_checkpoints
 *.h5
 models
