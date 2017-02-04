@@ -4,6 +4,7 @@
 
 import json
 import os
+import math
 
 import cv2
 import matplotlib
@@ -18,7 +19,8 @@ from keras.preprocessing.image import img_to_array, load_img
 # get_ipython().magic('matplotlib inline')
 matplotlib.style.use('ggplot')
 
-TARGET_SIZE = (64, 64)
+# TARGET_SIZE = (64, 64)
+TARGET_SIZE_COL, TARGET_SIZE_ROW = 64, 64
 BATCH_SIZE = 32
 
 image_dir = './data/'
@@ -33,28 +35,15 @@ def normalize(X):
     X /= 255.0
     return X
 
-
-def equalize_channel(X):
-    for i in range(0, 3):
-        channel = X[:, :, i]
-        channel = channel.astype(np.uint8)
-        channel = cv2.equalizeHist(channel)
-        X[:, :, i] = channel
-    return X
-
-
 def crop_and_resize(image):
-    '''
-    : The input image of dimensions 160x320x3
-    : return: Output image of size 64x64x3
-    '''
-    cropped_image = image[55:135, :, :]
-    processed_image = resize_to_target_size(cropped_image)
-    return processed_image
+    shape = image.shape
+    image = image[math.floor(shape[0] / 5):shape[0] - 25, 0:shape[1]]
+    image = cv2.resize(image, (TARGET_SIZE_COL, TARGET_SIZE_ROW), interpolation=cv2.INTER_AREA)
+    return image
 
 
-def resize_to_target_size(image):
-    return cv2.resize(image, TARGET_SIZE)
+# def resize_to_target_size(image):
+#     return cv2.resize(image, TARGET_SIZE)
 
 
 def augment_brightness(image):
@@ -77,14 +66,16 @@ def augment_brightness(image):
     return image1
 
 
+# Need to modify the pre_process...consider cropping first to remove the car and just see the road
 def pre_process(image_path):
-    image = load_img(image_path.strip())
-    image = img_to_array(image)
-    normalize(image)
+    image = cv2.imread(image_path.strip())
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # normalize(image)
+    # Add trans image if still issues
+    image = augment_brightness(image)
     image = crop_and_resize(image)
     #     image = equalize_channel(image)
-    image = augment_brightness(image)
-    image = image.astype(np.float32)
+    # image = image.astype(np.float32)
     # Normalize image
     #     image = image / 255.0 - 0.5
     return image
@@ -172,7 +163,7 @@ def get_augmented_row(row):
     # randomly choose the camera_chosen to take the image from
     camera_chosen = np.random.choice(['center', 'left', 'right'])
 
-    # adjust the steering angle for left anf right cameras
+    # adjust the steering angle for left and right cameras
     if camera_chosen == 'left':
         steering += 0.25
     elif camera_chosen == 'right':
@@ -183,6 +174,7 @@ def get_augmented_row(row):
 
     # Crop, resize and normalize the image
     image = pre_process(image_dir + row[camera_chosen].strip())
+    image = np.array(image)
     image, steering = flip_image(image, steering)
 
     return image, steering
@@ -273,20 +265,20 @@ nb_fc2 = 128
 model = Sequential()
 model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(64, 64, 3)))
 model.add(Convolution2D(32, 3, 3, border_mode='same', subsample=(2, 2), bias=False))
-model.add(Activation('relu'))
+model.add(Activation('elu'))
 model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
 model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2), bias=False))
-model.add(Activation('relu'))
+model.add(Activation('elu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Convolution2D(128, 3, 3, border_mode='same', subsample=(1, 1), bias=False))
-model.add(Activation('relu'))
+model.add(Activation('elu'))
 model.add(MaxPooling2D(pool_size=pool_size))
 model.add(Flatten())
 model.add(Dropout(0.5))
 model.add(Dense(128))
 model.add(BatchNormalization())
-model.add(Activation('relu'))
-model.add(Dropout(0.75))
+model.add(Activation('elu'))
+model.add(Dropout(0.5))
 model.add(Dense(128))
 model.add(BatchNormalization())
 model.add(Dense(1))
@@ -320,4 +312,3 @@ json_string = model.to_json()
 with open(model_json, 'w') as outfile:
     json.dump(json_string, outfile)
 model.save_weights(model_weights)
-
