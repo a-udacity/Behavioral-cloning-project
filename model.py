@@ -2,24 +2,22 @@
 
 # In[1]:
 
+import csv
 import json
-import os
 import math
+import os
 
 import cv2
 import matplotlib
 import numpy as np
 import pandas as pd
-from keras.layers import Dense, Activation, Dropout, Convolution2D, MaxPooling2D, Flatten, Lambda
+from keras.layers import Convolution2D, ELU, Flatten, Dropout, Dense
 from keras.models import Sequential
 from keras.models import model_from_json
 from keras.optimizers import Adam
-from keras.preprocessing.image import img_to_array, load_img
 
-# get_ipython().magic('matplotlib inline')
 matplotlib.style.use('ggplot')
 
-# TARGET_SIZE = (64, 64)
 TARGET_SIZE_COL, TARGET_SIZE_ROW = 64, 64
 BATCH_SIZE = 32
 
@@ -32,18 +30,15 @@ model_weights = 'model.h5'
 # In[2]:
 
 def normalize(X):
-    X /= 255.0
+    X = X / 255.0 - 0.5
     return X
+
 
 def crop_and_resize(image):
     shape = image.shape
     image = image[math.floor(shape[0] / 5):shape[0] - 25, 0:shape[1]]
     image = cv2.resize(image, (TARGET_SIZE_COL, TARGET_SIZE_ROW), interpolation=cv2.INTER_AREA)
     return image
-
-
-# def resize_to_target_size(image):
-#     return cv2.resize(image, TARGET_SIZE)
 
 
 def augment_brightness(image):
@@ -66,27 +61,15 @@ def augment_brightness(image):
     return image1
 
 
-# Need to modify the pre_process...consider cropping first to remove the car and just see the road
 def pre_process(image_path):
     image = cv2.imread(image_path.strip())
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # normalize(image)
-    # Add trans image if still issues
     image = augment_brightness(image)
     image = crop_and_resize(image)
-    #     image = equalize_channel(image)
-    # image = image.astype(np.float32)
-    # Normalize image
-    #     image = image / 255.0 - 0.5
     return image
 
 
 # In[3]:
-
-# load some images for display
-# [center,left,right,steering,throttle,brake,speed]
-import csv
-
 
 def read_driving_log():
     center_images = {}
@@ -96,7 +79,7 @@ def read_driving_log():
     with open(driving_log_csv) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            if (float(row['steering']) == 0): continue
+            if float(row['steering']) == 0: continue
 
             i += 1
             center_images[float(row['steering'])] = image_dir + row['center'].strip()
@@ -112,11 +95,8 @@ center_imgs, left_imgs, right_imgs = read_driving_log()
 
 # In[4]:
 
-import random
-import numpy as np
 import matplotlib.pyplot as plt
 
-# get_ipython().magic('matplotlib inline')
 font = {'family': 'serif',
         'color': 'darkred',
         'weight': 'normal',
@@ -160,17 +140,20 @@ plot_images(right_imgs)
 def get_augmented_row(row):
     steering = row['steering']
 
-    # randomly choose the camera_chosen to take the image from
-    camera_chosen = np.random.choice(['center', 'left', 'right'])
+    camera_chosen = 'center'
+    # randomly choose the camera_chosen to take the image from bool(row[4]) bool(row[left])
 
-    # adjust the steering angle for left and right cameras
+    if not (row['left'] and row['right']):
+        camera_chosen = 'center'
+    elif not (row['left']):
+        camera_chosen = np.random.choice(['center', 'right'])
+    elif not (row['right']):
+        camera_chosen = np.random.choice(['center', 'left'])
+
     if camera_chosen == 'left':
         steering += 0.25
     elif camera_chosen == 'right':
         steering -= 0.25
-
-    # image = load_img(data_dir + row[camera_chosen].strip())
-    # image = img_to_array(image)
 
     # Crop, resize and normalize the image
     image = pre_process(image_dir + row[camera_chosen].strip())
@@ -223,7 +206,7 @@ def get_data_generator(data_frame, batch_size=32):
         yield X_batch, y_batch
 
 
-# ## Create with data generator
+# ## Create Data generator
 
 # In[10]:
 
@@ -246,7 +229,7 @@ all_driving_log_rows = None
 training_generator = get_data_generator(training_data, batch_size=BATCH_SIZE)
 validation_data_generator = get_data_generator(validation_data, batch_size=BATCH_SIZE)
 
-# In[15]:
+# In[ ]:
 
 from keras.layers.normalization import BatchNormalization
 
@@ -263,31 +246,50 @@ nb_fc1 = 128
 nb_fc2 = 128
 
 model = Sequential()
-model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(64, 64, 3)))
-model.add(Convolution2D(32, 3, 3, border_mode='same', subsample=(2, 2), bias=False))
-model.add(Activation('elu'))
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
-model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2), bias=False))
-model.add(Activation('elu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Convolution2D(128, 3, 3, border_mode='same', subsample=(1, 1), bias=False))
-model.add(Activation('elu'))
-model.add(MaxPooling2D(pool_size=pool_size))
+model.add(Convolution2D(24, 5, 5, input_shape=(64, 64, 3), border_mode='same', subsample=(2, 2)))
+model.add(ELU())
+
+model.add(Convolution2D(36, 5, 5, border_mode='same', subsample=(2, 2)))
+model.add(ELU())
+model.add(Dropout(.4))
+
+model.add(Convolution2D(48, 5, 5, border_mode='same', subsample=(2, 2)))
+model.add(ELU())
+model.add(Dropout(.4))
+
+model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(1, 1)))
+model.add(ELU())
+
+model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(1, 1)))
+model.add(ELU())
+
 model.add(Flatten())
-model.add(Dropout(0.5))
-model.add(Dense(128))
+
+# Fully connected layers
+model.add(Dense(1164))
 model.add(BatchNormalization())
-model.add(Activation('elu'))
-model.add(Dropout(0.5))
-model.add(Dense(128))
+model.add(ELU())
+model.add(Dropout(.4))
+
+model.add(Dense(100))
 model.add(BatchNormalization())
+model.add(ELU())
+
+model.add(Dense(50))
+model.add(ELU())
+
+model.add(Dense(10))
+model.add(BatchNormalization())
+model.add(ELU())
+
 model.add(Dense(1))
 model.add(BatchNormalization())
+
 model.summary()
 
 adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
-restart = True
+restart = False
 if os.path.isfile(model_json) and restart:
     try:
         with open(model_json) as jfile:
@@ -300,13 +302,13 @@ if os.path.isfile(model_json) and restart:
 
 model.compile(optimizer=adam, loss='mse')
 
-# In[18]:
+# In[ ]:
 
 # 8037
 samples_per_epoch = (20000 // BATCH_SIZE) * BATCH_SIZE
 
 model.fit_generator(training_generator, validation_data=validation_data_generator,
-                    samples_per_epoch=samples_per_epoch, nb_epoch=10, nb_val_samples=3000)
+                    samples_per_epoch=samples_per_epoch, nb_epoch=55, nb_val_samples=3000)
 
 json_string = model.to_json()
 with open(model_json, 'w') as outfile:
