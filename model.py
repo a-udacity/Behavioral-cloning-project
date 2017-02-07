@@ -15,23 +15,27 @@ from keras.layers import Convolution2D, ELU, Flatten, Dropout, Dense
 from keras.models import Sequential
 from keras.models import model_from_json
 from keras.optimizers import Adam
+# matplotlib.style.use('ggplot')
 
-matplotlib.style.use('ggplot')
+
+RIGHT = 'right'
+CENTER = 'center'
+LEFT = 'left'
 
 TARGET_SIZE_COL, TARGET_SIZE_ROW = 64, 64
 BATCH_SIZE = 32
 
-image_dir = './data/'
-driving_log_csv = './data/driving_log.csv'
-model_json = 'model.json'
-model_weights = 'model.h5'
+IMAGE_DIR = './data/'
+DRIVING_LOG = './data/driving_log.csv'
+MODEL_AS_JSON = 'model.json'
+MODEL_WEIGHTS = 'model.h5'
 
 
 # In[2]:
 
-def normalize(X):
-    X = X / 255.0 - 0.5
-    return X
+def normalize(image):
+    image = image / 255.0 - 0.5
+    return image
 
 
 def crop_and_resize(image):
@@ -42,10 +46,10 @@ def crop_and_resize(image):
 
 
 def augment_brightness(image):
-    '''
+    """
     :param image: Input image
     :return: output image with reduced brightness
-    '''
+    """
     # convert to HSV so that its easy to adjust brightness
     image1 = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
@@ -76,15 +80,15 @@ def read_driving_log():
     left_images = {}
     right_images = {}
     i = 0
-    with open(driving_log_csv) as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(DRIVING_LOG) as csv_file:
+        reader = csv.DictReader(csv_file)
         for row in reader:
             if float(row['steering']) == 0: continue
 
             i += 1
-            center_images[float(row['steering'])] = image_dir + row['center'].strip()
-            left_images[float(row['steering'])] = image_dir + row['left'].strip()
-            right_images[float(row['steering'])] = image_dir + row['right'].strip()
+            center_images[float(row['steering'])] = IMAGE_DIR + row['center'].strip()
+            left_images[float(row['steering'])] = IMAGE_DIR + row['left'].strip()
+            right_images[float(row['steering'])] = IMAGE_DIR + row['right'].strip()
 
             if i == 5: break
 
@@ -140,27 +144,33 @@ plot_images(right_imgs)
 def get_augmented_row(row):
     steering = row['steering']
 
-    camera_chosen = 'center'
-    # randomly choose the camera_chosen to take the image from bool(row[4]) bool(row[left])
-
-    if not (row['left'] and row['right']):
-        camera_chosen = 'center'
-    elif not (row['left']):
-        camera_chosen = np.random.choice(['center', 'right'])
-    elif not (row['right']):
-        camera_chosen = np.random.choice(['center', 'left'])
-
-    if camera_chosen == 'left':
-        steering += 0.25
-    elif camera_chosen == 'right':
-        steering -= 0.25
-
-    # Crop, resize and normalize the image
-    image = pre_process(image_dir + row[camera_chosen].strip())
+    camera_chosen = randomly_choose_camera(row)
+    steering = adjust_steering_for(camera_chosen, steering)
+    image = pre_process(IMAGE_DIR + row[camera_chosen].strip())
     image = np.array(image)
     image, steering = flip_image(image, steering)
 
     return image, steering
+
+
+def adjust_steering_for(camera_chosen, steering):
+    if camera_chosen == LEFT:
+        steering += 0.25
+    elif camera_chosen == 'right':
+        steering -= 0.25
+
+    return steering
+
+
+def randomly_choose_camera(row):
+    camera_chosen = CENTER
+    if not (row[LEFT] and row[RIGHT]):
+        camera_chosen = CENTER
+    elif not (row[LEFT]):
+        camera_chosen = np.random.choice([CENTER, RIGHT])
+    elif not (row[RIGHT]):
+        camera_chosen = np.random.choice([CENTER, LEFT])
+    return camera_chosen
 
 
 def flip_image(image, steering):
@@ -179,38 +189,35 @@ def flip_image(image, steering):
 
 # In[9]:
 
-def get_data_generator(data_frame, batch_size=32):
-    N = data_frame.shape[0]
-    batches_per_epoch = N // batch_size
+def get_data_generator(driving_log_handle, batch_size=32):
+    batches_per_epoch = driving_log_handle.shape[0]  # batch_size
 
-    i = 0
-    while (True):
-        start = i * batch_size
+    batch_iteration_counter = 0
+    while True:
+        start = batch_iteration_counter * batch_size
         end = start + batch_size - 1
 
         X_batch = np.zeros((batch_size, 64, 64, 3), dtype=np.float32)
         y_batch = np.zeros((batch_size,), dtype=np.float32)
 
-        j = 0
-
-        # slice a `batch_size` sized chunk from the dataframe
+        # slice a `batch_size` sized chunk from the driving log giving handle
         # and generate augmented data for each row in the chunk on the fly
-        for index, row in data_frame.loc[start:end].iterrows():
-            X_batch[j], y_batch[j] = get_augmented_row(row)
-            j += 1
+        for index, row in driving_log_handle.loc[start:end].iterrows():
+            X_batch[index], y_batch[index] = get_augmented_row(row)
+            index += 1
 
-        i += 1
-        if i == batches_per_epoch - 1:
+        batch_iteration_counter += 1
+        if batch_iteration_counter == batches_per_epoch - 1:
             # reset the index so that we can cycle over the data_frame again
-            i = 0
+            batch_iteration_counter = 0
         yield X_batch, y_batch
 
 
 # ## Create Data generator
 
 # In[10]:
-
-all_driving_log_rows = pd.read_csv(driving_log_csv, usecols=[0, 1, 2, 3])
+# center,left,right,steering,throttle,brake,speed
+all_driving_log_rows = pd.read_csv(DRIVING_LOG, usecols=[0, 1, 2, 3])
 
 # shuffle the data
 all_driving_log_rows = all_driving_log_rows.sample(frac=1).reset_index(drop=True)
@@ -287,30 +294,32 @@ model.add(BatchNormalization())
 
 model.summary()
 
-adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+if __name__ == "__main__":
 
-restart = False
-if os.path.isfile(model_json) and restart:
-    try:
-        with open(model_json) as jfile:
-            model = model_from_json(json.load(jfile))
-            model.load_weights(model_weights)
-        print('loading trained model ...')
-    except Exception as e:
-        print('Unable to load model', model_json, ':', e)
-        raise
+    adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
-model.compile(optimizer=adam, loss='mse')
+    restart = True
+    if os.path.isfile(MODEL_AS_JSON) and restart:
+        try:
+            with open(MODEL_AS_JSON) as jfile:
+                model = model_from_json(json.load(jfile))
+                model.load_weights(MODEL_WEIGHTS)
+            print('loading trained model ...')
+        except Exception as e:
+            print('Unable to load model', MODEL_AS_JSON, ':', e)
+            raise
 
-# In[ ]:
+    model.compile(optimizer=adam, loss='mse')
 
-# 8037
-samples_per_epoch = (20000 // BATCH_SIZE) * BATCH_SIZE
+    # In[ ]:
 
-model.fit_generator(training_generator, validation_data=validation_data_generator,
-                    samples_per_epoch=samples_per_epoch, nb_epoch=55, nb_val_samples=3000)
+    # 8037 + 5000 generated by hand images
+    samples_per_epoch = (20000 // BATCH_SIZE) * BATCH_SIZE
 
-json_string = model.to_json()
-with open(model_json, 'w') as outfile:
-    json.dump(json_string, outfile)
-model.save_weights(model_weights)
+    model.fit_generator(training_generator, validation_data=validation_data_generator,
+                        samples_per_epoch=samples_per_epoch, nb_epoch=55, nb_val_samples=3000)
+
+    json_string = model.to_json()
+    with open(MODEL_AS_JSON, 'w') as outfile:
+        json.dump(json_string, outfile)
+    model.save_weights(MODEL_WEIGHTS)
