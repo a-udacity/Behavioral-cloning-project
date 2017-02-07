@@ -20,6 +20,8 @@ The goals / steps of this project are the following:
 [image5]: ./examples/placeholder_small.png "Recovery Image"
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
+[Evaluation Track Video]: https://youtu.be/Xplj9rNayR8
+[Evaluation Track Video]: https://youtu.be/zxCuKIyuFzo
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
