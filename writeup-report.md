@@ -1,7 +1,9 @@
 #**Behavioral-cloning-project** 
+TODO: Flipped images
+ACTUAL images
 
 
-**Behavrioal Cloning Project**
+**Behavioral Cloning Project**
 
 The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
@@ -10,18 +12,35 @@ The goals / steps of this project are the following:
 * Test that the model successfully drives around track one without leaving the road
 * Summarize the results with a written report
 
+Overview
+
+The objective of this project is to clone human driving behavior using a Deep Neural Network.
+In order to achieve this, we are going to use a simple Car Simulator that captures the images from 3 cameras (center, left, right) along with steering angles.
+Then those recorded images and the corresponding sheering angles are used to train the 5 layers neural network.
+Trained model was tested on two tracks, namely track1 and track2. The two following you videos show the performance of the final model track 1 and track 2 in Autonomous Mode.
+
+
+[![Evaluation Track](sample/track1.jpg)](https://youtu.be/Xplj9rNayR8)
+[![Track 2](sample/track2.jpg)](https://youtu.be/zxCuKIyuFzo)
+
+* model.py - The script used to create and train the model.
+* drive.py - The script to drive the car. I have modified to work correctly.
+* model.json - The model json filexxxx
+* model.h5 - The trained model.
+* ./data/drive_log.csv  - Combined log of simulated data along with sample data provided by udacity.
+* model.ipynb - Model Jupyter notebook. Note this also contains the generated images for visualization.....
 
 [//]: # (Image References)
+Here's our logo (hover to see the title text):
 
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
-[Evaluation Track Video]: https://youtu.be/Xplj9rNayR8
-[Evaluation Track Video]: https://youtu.be/zxCuKIyuFzo
+![image 1](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Normal center camera images")
+![image 2](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Normal left camera images")
+![image 3](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Normal right camera images")
+![image 4](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/center.png "Pre-process center camera images")
+![image 5](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "Pre-process right camera images")
+![image 6](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/right.png "Pre-process left center camera images")
+![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Pre-process flipped images")
+
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -37,11 +56,12 @@ My project includes the following files:
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
+* sample/*.png - visualization of images folder
 
 ####2. Submssion includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
-python drive.py model.h5
+python drive.py model.json
 ```
 
 ####3. Submssion code is usable and readable
