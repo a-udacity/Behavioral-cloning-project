@@ -40,15 +40,6 @@ Trained model was tested on two tracks, namely track1 and track2. The two follow
                                              Normal right camera images
 ![image 3](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/normal_right.png "TODO Normal right camera images")
 
-                                             Pre-processed center camera images
-![image 4](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/center.png "Pre-process center camera images")
-
-                                             Pre-processed center camera images
-![image 5](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "Pre-process right camera images")
-
-                                             Pre-processed left camera images
-![image 6](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/right.png "Pre-process left center camera images")
-
                                              Brigtness Augmentation images
 ![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/brightness_augmentation.png "TODO Pre-process flipped images")
 
@@ -57,6 +48,15 @@ Trained model was tested on two tracks, namely track1 and track2. The two follow
 
                                              Veritcal Flip of LEFT images
 ![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/vertical_flip.png "TODO Pre-process flipped images")
+
+                                             Pre-processed center camera images
+![image 4](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/center.png "Pre-process center camera images")
+
+                                             Pre-processed center camera images
+![image 5](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "Pre-process right camera images")
+
+                                             Pre-processed left camera images
+![image 6](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/right.png "Pre-process left center camera images")
 
 
 ## Rubric Points
