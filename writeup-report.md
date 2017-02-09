@@ -43,7 +43,7 @@ Trained model was tested on two tracks, namely track1 and track2. The two follow
                                              Brigtness Augmentation images
 ![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/brightness_augmentation.png "TODO Pre-process flipped images")
 
-                                             Crop and Resized images
+                                             Crop and Resized to 64x64 images
 ![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/crop_and_resize.png "TODO Pre-process flipped images")
 
                                              Veritcal Flip of LEFT images
@@ -52,10 +52,10 @@ Trained model was tested on two tracks, namely track1 and track2. The two follow
                                              Pre-processed center camera images
 ![image 4](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/center.png "Pre-process center camera images")
 
-                                             Pre-processed center camera images
+                                             Pre-processed left camera images
 ![image 5](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "Pre-process right camera images")
 
-                                             Pre-processed left camera images
+                                             Pre-processed right camera images
 ![image 6](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/right.png "Pre-process left center camera images")
 
 
