@@ -1,25 +1,19 @@
 import argparse
 import base64
 import json
-from datetime import datetime
-
-import numpy as np
-import socketio
-import eventlet
-import eventlet.wsgi
-import time
-from PIL import Image
-from PIL import ImageOps
-from flask import Flask, render_template
-from io import BytesIO
 import os
 import shutil
-from keras.models import model_from_json
-from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array
-import cv2
+from datetime import datetime
+from io import BytesIO
 
-# Fix error with Keras and TensorFlow
+import cv2
+import eventlet.wsgi
+import numpy as np
+import socketio
 import tensorflow as tf
+from PIL import Image
+from flask import Flask
+from keras.models import model_from_json
 
 tf.python.control_flow_ops = tf
 

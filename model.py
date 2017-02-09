@@ -15,6 +15,7 @@ from keras.layers import Convolution2D, ELU, Flatten, Dropout, Dense
 from keras.models import Sequential
 from keras.models import model_from_json
 from keras.optimizers import Adam
+
 # matplotlib.style.use('ggplot')
 
 
@@ -33,44 +34,64 @@ MODEL_WEIGHTS = 'model.h5'
 
 # In[2]:
 
-def normalize(image):
-    image = image / 255.0 - 0.5
-    return image
+class ProcessImage:
+    def __init__(self, image_path, steering):
+        self.image_path = image_path
+        self.steering = steering
+        self.image = cv2.imread(image_path.strip())
+        # if self.image is None:
 
+    def process_none(self):
+        return self.image, self.steering
 
-def crop_and_resize(image):
-    shape = image.shape
-    image = image[math.floor(shape[0] / 5):shape[0] - 25, 0:shape[1]]
-    image = cv2.resize(image, (TARGET_SIZE_COL, TARGET_SIZE_ROW), interpolation=cv2.INTER_AREA)
-    return image
+    def pre_process(self):
+        image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        pre_process_img, steering = self.augment_brightness(image)
+        pre_process_img, steering = self.crop_and_resize(pre_process_img)
+        return pre_process_img, self.steering
 
+    def flip_image_vertical(self, image=None, prob=0.5):
+        # decide whether to horizontally flip the image:
+        # This is done to reduce the bias for turning left that is present in the training data
+        if image is None:
+            image = self.image
 
-def augment_brightness(image):
-    """
-    :param image: Input image
-    :return: output image with reduced brightness
-    """
-    # convert to HSV so that its easy to adjust brightness
-    image1 = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+        image = np.array(self.image)
+        flip_prob = np.random.random()
+        if flip_prob > prob:
+            # flip the image and reverse the steering angle
+            self.steering *= -1
+            image = cv2.flip(image, 1)
 
-    # randomly generate the brightness reduction factor
-    # Add a constant so that it prevents the image from being completely dark
-    random_bright = .25 + np.random.uniform()
+        return image, self.steering
 
-    # Apply the brightness reduction to the V channel
-    image1[:, :, 2] = image1[:, :, 2] * random_bright
+    def crop_and_resize(self, image=None):
+        if image is None:
+            image = self.image
 
-    # convert to RBG again
-    image1 = cv2.cvtColor(image1, cv2.COLOR_HSV2RGB)
-    return image1
+        shape = image.shape
+        image = image[math.floor(shape[0] / 5):shape[0] - 25, 0:shape[1]]
+        image = cv2.resize(image, (TARGET_SIZE_COL, TARGET_SIZE_ROW), interpolation=cv2.INTER_AREA)
+        return image, self.steering
 
+    def augment_brightness(self, image=None):
+        if image is None:
+            image = self.image
 
-def pre_process(image_path):
-    image = cv2.imread(image_path.strip())
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image = augment_brightness(image)
-    image = crop_and_resize(image)
-    return image
+        # convert to HSV so that its easy to adjust brightness
+        bright_modified_img = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+        # randomly generate the brightness reduction factor
+        # Add a constant so that it prevents the image from being completely dark
+        random_bright = .25 + np.random.uniform()
+
+        # Apply the brightness reduction to the V channel
+        bright_modified_img[:, :, 2] = bright_modified_img[:, :, 2] * random_bright
+
+        # convert to RBG again
+        bright_modified_img = cv2.cvtColor(bright_modified_img, cv2.COLOR_HSV2RGB)
+        return bright_modified_img, self.steering
+
 
 
 # In[3]:
@@ -107,24 +128,28 @@ font = {'family': 'serif',
         'size': 12,
         }
 
-
-def plot_images(images_data):
+# f = lambda x, y : x + y
+f = lambda image_path, steering : ProcessImage(image_path, steering).pre_process()
+def plot_images(images_data, process_function):
     plt.figure(figsize=(15, 15))
     i = 0
     for steering_angle, image_path in images_data.items():
-        pre_image = pre_process(image_path)
+        # pre_image = pre_process(image_path)
+        # pre_image, steering = ProcessImage(image_path, steering_angle).pre_process()
+        pre_image, steering = process_function(image_path, steering_angle)
         plt.subplot(5, 5, i + 1)
         plt.subplots_adjust(left=0.15)
         plt.imshow(pre_image)
-        plt.text(0, -2, steering_angle, fontdict=font)
+        plt.text(0, -2, steering, fontdict=font)
         i += 1
 
 
 # ## Visualize Pre-processed Camera Center images along with the steering angle
 
 # In[5]:
+f = lambda image_path, steering : ProcessImage(image_path, steering).pre_process()
 
-plot_images(center_imgs)
+plot_images(center_imgs, f)
 
 # ## Visualize  Pre-processed Left camera images with its steering angles
 
@@ -146,9 +171,12 @@ def get_augmented_row(row):
 
     camera_chosen = randomly_choose_camera(row)
     steering = adjust_steering_for(camera_chosen, steering)
-    image = pre_process(IMAGE_DIR + row[camera_chosen].strip())
-    image = np.array(image)
-    image, steering = flip_image(image, steering)
+
+    # image = pre_process(IMAGE_DIR + row[camera_chosen].strip())
+    # image, steering = flip_image(image, steering)
+    image_processor = ProcessImage(IMAGE_DIR + row[camera_chosen].strip(), steering)
+    image, steering = image_processor.pre_process()
+    image, steering = image_processor.flip_image_vertical(image)
 
     return image, steering
 

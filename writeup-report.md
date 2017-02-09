@@ -31,15 +31,32 @@ Trained model was tested on two tracks, namely track1 and track2. The two follow
 * model.ipynb - Model Jupyter notebook. Note this also contains the generated images for visualization.....
 
 [//]: # (Image References)
-Here's our logo (hover to see the title text):
+                                             Normal center camera images
+![image 1](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/normal_center.png "TODO Normal center camera images")
 
-![image 1](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Normal center camera images")
-![image 2](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Normal left camera images")
-![image 3](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Normal right camera images")
+                                             Normal left camera images
+![image 2](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/normal_left.png "TODO Normal left camera images")
+
+                                             Normal right camera images
+![image 3](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/normal_right.png "TODO Normal right camera images")
+
+                                             Pre-processed center camera images
 ![image 4](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/center.png "Pre-process center camera images")
+
+                                             Pre-processed center camera images
 ![image 5](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "Pre-process right camera images")
+
+                                             Pre-processed left camera images
 ![image 6](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/right.png "Pre-process left center camera images")
-![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/left.png "TODO Pre-process flipped images")
+
+                                             Brigtness Augmentation images
+![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/brightness_augmentation.png "TODO Pre-process flipped images")
+
+                                             Crop and Resized images
+![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/crop_and_resize.png "TODO Pre-process flipped images")
+
+                                             Veritcal Flip of LEFT images
+![image 7](https://raw.githubusercontent.com/ahararwala/Behavioral-cloning-project/master/sample/vertical_flip.png "TODO Pre-process flipped images")
 
 
 ## Rubric Points
