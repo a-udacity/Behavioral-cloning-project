@@ -14,7 +14,7 @@ Trained model was tested on two tracks, namely track1 and track2. The two follow
 
 * model.py - The script used to create and train the model.
 * drive.py - The script to drive the car. I have modified to work correctly.
-* model.json - The model json filexxxx
+* model.json - The Keras model json
 * model.h5 - The trained model.
 * ./data/drive_log.csv  - Combined log of simulated data along with sample data provided by udacity.
 * model.ipynb - Model Jupyter notebook. Note this also contains the generated images for visualization.....
@@ -229,14 +229,15 @@ After the collection process, I had 5000 extra images. I then preprocessed this 
 * Crop and resize to 64 x 64 for keras model. The crop was done is such a way that the car and hood was removed first instead of 
  cropping evenly. This allowed the model to focus more on the road. (@see images above)
 * Vertical Flip. To show the network equal amounts of left and right turn steering angle. I used 50 percent probability in my generator to generate an image with the right labels or flipped the image and changed the sign of the steering angle.  (@see images above)
-* Camera image - since we had three images per row (center, left, right). I chose camera image randomly and applied the neccessary
+* Camera image - since we had three images per row (center, left, right). I chose camera image randomly and applied the necessary
  calculations to change the steering angle
 
 I finally randomly shuffled the data set and put 20% of the data into a validation set. 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+I used this training data for training the model. The validation set helped determine if the model was over or under fitting. 
+The ideal number of epochs was 55.
 
 ###Results
-I kept the models that is good enough for validation set. To evaluate my trained model, I design a code to show me a random sequence with the ground truth and predicted steering angle and I justified the model manually before the run in the simulator.
+I kept the models that is good enough for validation set. To evaluate my trained model, I designed the data to show me a random sequence with the ground truth and predicted steering angle and I justified the model manually before the run in the simulator.
 This approach is great if you check that in the ordered dataset according to time @ see the top section for my results on Track 1 and Track 2.
 
 ###Conclusions
