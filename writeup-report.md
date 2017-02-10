@@ -133,7 +133,7 @@ Non-trainable params: 0
 ____________________________________________________________________________________________________
 </pre>
 
-####2. Attempts to reduce over fitting in the model
+####3. Attempts to reduce over fitting in the model
 
 The model contains dropout layers in order to reduce over fitting (model.py lines 21). 
 The model was trained and validated on different data sets to ensure that the model was not over fitting (code line 10-16). 
@@ -209,7 +209,7 @@ I used a combination of center lane driving, recovering from the left and right 
 5000 images that I merged with the data images and log provided by Udacity. I was not able to maintain the smoothness of the turn
 since i was using a mouse to run the car in simulation and spend approximately 1/2 a day capturing the data after some practice.
 
-####1. Creation of the Training Set & Training Process
+####5. Creation of the Training Set & Training Process
 
 To capture good driving behavior, I first recorded one lap on track 1 and approximately one using center lane driving on track 2. 
 @see visualization of images above. 
